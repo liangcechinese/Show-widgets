@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>页面亮度和颜色调整工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #ffffff;
+            transition: all 0.3s ease;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        /* 添加鼠标隐藏的样式 */
+        body.cursor-hidden {
+            cursor: none;
+        }
+        body.cursor-hidden .control-panel {
+            cursor: default;
+        }
+        body.cursor-hidden .control-panel:hover {
+            cursor: default;
+        }
+        body.cursor-hidden .drag-handle {
+            cursor: move;
+        }
+        body.cursor-hidden input[type="range"] {
+            cursor: pointer;
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .control-panel.hidden {
+            transform: translate(-50%, -50%) scale(0.8);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .control-panel:hover {
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-group-title {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .slider-container {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 300px;
+        }
+
+        label {
+            min-width: 40px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #e0e0e0;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #4a90e2;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        #red::-webkit-slider-thumb {
+            background: #ff4757;
+        }
+
+        #green::-webkit-slider-thumb {
+            background: #2ed573;
+        }
+
+        #blue::-webkit-slider-thumb {
+            background: #1e90ff;
+        }
+
+        span.value {
+            min-width: 45px;
+            font-size: 12px;
+            color: #666;
+            font-family: monospace;
+            padding: 2px 6px;
+            background: #f5f5f5;
+            border-radius: 3px;
+            text-align: center;
+        }
+
+        .color-preview {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+            margin-left: 8px;
+        }
+
+        .drag-handle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .auto-hide-hint {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 11px;
+            color: rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .controls-wrapper {
+            margin-top: 20px;
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+            transition: all 0.2s ease;
+            z-index: 2;
+        }
+
+        .fullscreen-btn:hover {
+            color: #333;
+            transform: scale(1.1);
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 6px;
+            margin-left: 8px;
+            transition: all 0.2s ease;
+            border-radius: 3px;
+            background: #f0f0f0;
+        }
+
+        .copy-btn:hover {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .copy-btn.copied {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .color-input {
+            width: 80px;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 2px 4px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            color: #666;
+            background: #f5f5f5;
+            margin-left: 8px;
+        }
+
+        .color-input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            background: white;
+        }
+
+        .color-input.invalid {
+            border-color: #ff4757;
+            background: #ffe0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="control-panel" id="controlPanel">
+        <div class="drag-handle">点击此处拖动面板</div>
+        <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+        <div class="controls-wrapper">
+            <div class="control-group">
+                <div class="control-group-title">亮度控制</div>
+                <div class="slider-container">
+                    <label for="brightness">亮度</label>
+                    <input type="range" id="brightness" min="0" max="100" value="100">
+                    <span class="value" id="brightnessValue">100%</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-group-title">颜色控制</div>
+                <div class="slider-container">
+                    <label for="red">红</label>
+                    <input type="range" id="red" min="0" max="255" value="255">
+                    <span class="value" id="redValue">255</span>
+                </div>
+                <div class="slider-container">
+                    <label for="green">绿</label>
+                    <input type="range" id="green" min="0" max="255" value="255">
+                    <span class="value" id="greenValue">255</span>
+                </div>
+                <div class="slider-container">
+                    <label for="blue">蓝</label>
+                    <input type="range" id="blue" min="0" max="255" value="255">
+                    <span class="value" id="blueValue">255</span>
+                </div>
+                <div class="slider-container">
+                    <label>颜色</label>
+                    <input type="text" class="color-input" id="colorInput" value="#FFFFFF" maxlength="7">
+                    <button class="copy-btn" id="copyBtn">复制</button>
+                    <div class="color-preview" id="colorPreview"></div>
+                </div>
+            </div>
+        </div>
+        <div class="auto-hide-hint">鼠标在空白处静止2秒后自动隐藏</div>
+    </div>
+
+    <script>
+        let baseRed = 255;
+        let baseGreen = 255;
+        let baseBlue = 255;
+        let currentBrightness = 100;
+        let isMouseMoving = false;
+        let mouseTimer = null;
+        let panelVisible = true;
+        let isFullscreen = false;
+
+        const controlPanel = document.getElementById('controlPanel');
+        const dragHandle = document.querySelector('.drag-handle');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+        // 拖动功能
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        function dragStart(e) {
+            if (e.type === "mousedown") {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+            }
+            
+            if (e.target === dragHandle) {
+                isDragging = true;
+            }
+        }
+
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                // 防止在拖动时选中文本
+                if (window.getSelection) {
+                    window.getSelection().removeAllRanges();
+                } else if (document.selection) {
+                    document.selection.empty();
+                }
+                
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                xOffset = currentX;
+                yOffset = currentY;
+
+                controlPanel.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
+            }
+        }
+
+        dragHandle.addEventListener('mousedown', dragStart);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', dragEnd);
+
+        // 全屏功能
+        function toggleFullscreen() {
+            if (!isFullscreen) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.mozRequestFullScreen) {
+                    document.documentElement.mozRequestFullScreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                }
+                fullscreenBtn.textContent = '';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                fullscreenBtn.textContent = '';
+            }
+        }
+
+        // 监听全屏变化
+        document.addEventListener('fullscreenchange', () => {
+            isFullscreen = !!document.fullscreenElement;
+            fullscreenBtn.textContent = isFullscreen ? '' : '';
+        });
+
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+        function adjustBrightness() {
+            currentBrightness = document.getElementById('brightness').value;
+            document.getElementById('brightnessValue').textContent = currentBrightness + '%';
+            updateColor();
+        }
+
+        function updateBaseColors() {
+            baseRed = parseInt(document.getElementById('red').value);
+            baseGreen = parseInt(document.getElementById('green').value);
+            baseBlue = parseInt(document.getElementById('blue').value);
+            
+            document.getElementById('redValue').textContent = baseRed;
+            document.getElementById('greenValue').textContent = baseGreen;
+            document.getElementById('blueValue').textContent = baseBlue;
+            
+            updateColor();
+        }
+
+        function updateColor() {
+            const brightnessMultiplier = currentBrightness / 100;
+            const red = Math.round(baseRed * brightnessMultiplier);
+            const green = Math.round(baseGreen * brightnessMultiplier);
+            const blue = Math.round(baseBlue * brightnessMultiplier);
+            
+            const color = `#${red.toString(16).padStart(2, '0')}${green.toString(16).padStart(2, '0')}${blue.toString(16).padStart(2, '0')}`;
+            document.body.style.backgroundColor = color;
+            document.getElementById('colorInput').value = color.toUpperCase();
+            document.getElementById('colorPreview').style.backgroundColor = color;
+        }
+
+        function handleMouseMove() {
+            if (!isMouseMoving) {
+                isMouseMoving = true;
+                showPanel();
+            }
+            
+            // 显示鼠标
+            document.body.classList.remove('cursor-hidden');
+            
+            clearTimeout(mouseTimer);
+            mouseTimer = setTimeout(() => {
+                isMouseMoving = false;
+                if (!controlPanel.matches(':hover')) {
+                    hidePanel();
+                    // 隐藏鼠标
+                    document.body.classList.add('cursor-hidden');
+                }
+            }, 2000);
+        }
+
+        function showPanel() {
+            if (!panelVisible) {
+                controlPanel.classList.remove('hidden');
+                panelVisible = true;
+            }
+        }
+
+        function hidePanel() {
+            if (panelVisible && !controlPanel.matches(':hover')) {
+                controlPanel.classList.add('hidden');
+                panelVisible = false;
+            }
+        }
+        
+        // 鼠标移动检测
+        document.addEventListener('mousemove', handleMouseMove);
+        
+        // 控制面板悬停处理
+        controlPanel.addEventListener('mouseenter', () => {
+            clearTimeout(mouseTimer);
+            // 在面板上时显示鼠标
+            document.body.classList.remove('cursor-hidden');
+        });
+        
+        controlPanel.addEventListener('mouseleave', () => {
+            if (!isMouseMoving) {
+                hidePanel();
+                // 离开面板且不移动时隐藏鼠标
+                document.body.classList.add('cursor-hidden');
+            }
+        });
+
+        // Add event listeners for controls
+        document.getElementById('brightness').addEventListener('input', adjustBrightness);
+        document.getElementById('red').addEventListener('input', updateBaseColors);
+        document.getElementById('green').addEventListener('input', updateBaseColors);
+        document.getElementById('blue').addEventListener('input', updateBaseColors);
+
+        // 颜色输入框功能
+        const colorInput = document.getElementById('colorInput');
+        
+        colorInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            // 确保以#开头
+            if (!value.startsWith('#')) {
+                e.target.value = '#' + value;
+            }
+            // 限制长度为7个字符
+            if (value.length > 7) {
+                e.target.value = value.slice(0, 7);
+            }
+        });
+
+        colorInput.addEventListener('change', (e) => {
+            const value = e.target.value;
+            // 验证颜色格式
+            const isValid = /^#[0-9A-Fa-f]{6}$/.test(value);
+            
+            if (isValid) {
+                // 更新RGB滑块
+                const r = parseInt(value.slice(1, 3), 16);
+                const g = parseInt(value.slice(3, 5), 16);
+                const b = parseInt(value.slice(5, 7), 16);
+                
+                document.getElementById('red').value = r;
+                document.getElementById('green').value = g;
+                document.getElementById('blue').value = b;
+                
+                baseRed = r;
+                baseGreen = g;
+                baseBlue = b;
+                
+                updateBaseColors();
+                colorInput.classList.remove('invalid');
+            } else {
+                colorInput.classList.add('invalid');
+                // 1秒后恢复当前正确的颜色值
+                setTimeout(() => {
+                    updateColor();
+                    colorInput.classList.remove('invalid');
+                }, 1000);
+            }
+        });
+
+        // 复制按钮事件监听器
+        const copyBtn = document.getElementById('copyBtn');
+        copyBtn.addEventListener('click', async () => {
+            const colorValue = document.getElementById('colorInput').value;
+            try {
+                await navigator.clipboard.writeText(colorValue);
+                copyBtn.textContent = '已复制';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = '复制';
+                    copyBtn.classList.remove('copied');
+                }, 1500);
+            } catch (err) {
+                console.error('复制失败:', err);
+            }
+        });
+
+        // Initialize controls on page load
+        window.addEventListener('load', () => {
+            adjustBrightness();
+            updateBaseColors();
+        });
+    </script>
+</body>
+</html>
