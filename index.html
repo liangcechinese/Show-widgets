@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>页面亮度和颜色调整工具</title>
+    <title>Show-widgets - 屏幕调节工具</title>
     <style>
         * {
             margin: 0;
@@ -13,9 +13,9 @@
 
         body {
             background-color: #ffffff;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease;
             min-height: 100vh;
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
         }
 
         /* 添加鼠标隐藏的样式 */
@@ -40,31 +40,61 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(1);
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 250, 250, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
             z-index: 1000;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
+            min-width: 360px;
         }
 
         .control-panel.hidden {
-            transform: translate(-50%, -50%) scale(0.8);
+            transform: translate(-50%, -50%) scale(0.9);
             opacity: 0;
             pointer-events: none;
         }
 
         .control-panel:hover {
-            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title::before {
+            content: '🎨';
+            font-size: 20px;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
 
         .control-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .control-group:last-child {
@@ -72,53 +102,56 @@
         }
 
         .control-group-title {
-            font-size: 13px;
-            color: #333;
+            font-size: 12px;
+            color: #666;
             margin-bottom: 12px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            text-align: center;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .slider-container {
-            margin: 8px 0;
+            margin: 10px 0;
             display: flex;
             align-items: center;
-            gap: 10px;
-            width: 300px;
+            gap: 12px;
         }
 
         label {
-            min-width: 40px;
-            font-size: 13px;
-            color: #666;
+            min-width: 45px;
+            font-size: 14px;
+            color: #444;
+            font-weight: 500;
         }
 
         input[type="range"] {
             flex: 1;
             height: 6px;
             -webkit-appearance: none;
-            background: #e0e0e0;
+            background: #e8e8e8;
             border-radius: 3px;
             outline: none;
+            position: relative;
         }
 
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             background: #4a90e2;
             cursor: pointer;
             border: none;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
             transition: all 0.2s ease;
         }
 
         input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transform: scale(1.15);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
         }
 
         #red::-webkit-slider-thumb {
@@ -134,22 +167,23 @@
         }
 
         span.value {
-            min-width: 45px;
-            font-size: 12px;
-            color: #666;
-            font-family: monospace;
-            padding: 2px 6px;
-            background: #f5f5f5;
-            border-radius: 3px;
+            min-width: 50px;
+            font-size: 13px;
+            color: #555;
+            font-family: 'SF Mono', Monaco, monospace;
+            padding: 4px 8px;
+            background: #f8f8f8;
+            border-radius: 4px;
             text-align: center;
+            font-weight: 500;
         }
 
         .color-preview {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
             border: 2px solid #fff;
-            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.1);
             margin-left: 8px;
         }
 
@@ -158,62 +192,89 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 30px;
+            height: 35px;
             cursor: move;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
+            color: #999;
+            border-radius: 16px 16px 0 0;
+            transition: all 0.2s ease;
+        }
+
+        .drag-handle:hover {
+            background: rgba(0, 0, 0, 0.02);
             color: #666;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .drag-handle::before {
+            content: '';
+            width: 40px;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .drag-handle:hover::before {
+            background: #bbb;
+            width: 50px;
         }
 
         .auto-hide-hint {
             position: absolute;
-            bottom: -20px;
+            bottom: -25px;
             left: 0;
             right: 0;
             text-align: center;
             font-size: 11px;
-            color: rgba(0, 0, 0, 0.4);
+            color: rgba(0, 0, 0, 0.3);
             pointer-events: none;
             white-space: nowrap;
         }
 
         .controls-wrapper {
-            margin-top: 20px;
+            margin-top: 0;
         }
 
-        .fullscreen-btn {
-            position: absolute;
-            top: 5px;
-            right: 10px;
+        .icon-btn {
             background: none;
             border: none;
             color: #666;
             cursor: pointer;
-            font-size: 16px;
-            padding: 5px;
+            font-size: 18px;
+            padding: 6px;
             transition: all 0.2s ease;
-            z-index: 2;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
         }
 
-        .fullscreen-btn:hover {
+        .icon-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
             color: #333;
-            transform: scale(1.1);
+        }
+
+        .icon-btn.active {
+            background: #4a90e2;
+            color: white;
         }
 
         .copy-btn {
-            background: none;
+            background: #f0f0f0;
             border: none;
             color: #666;
             cursor: pointer;
-            font-size: 14px;
-            padding: 2px 6px;
+            font-size: 13px;
+            padding: 4px 10px;
             margin-left: 8px;
             transition: all 0.2s ease;
-            border-radius: 3px;
-            background: #f0f0f0;
+            border-radius: 4px;
+            font-weight: 500;
         }
 
         .copy-btn:hover {
@@ -227,36 +288,177 @@
         }
 
         .color-input {
-            width: 80px;
-            font-family: monospace;
-            font-size: 12px;
-            padding: 2px 4px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            color: #666;
-            background: #f5f5f5;
+            width: 85px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
+            padding: 4px 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            color: #555;
+            background: #fafafa;
             margin-left: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
         .color-input:focus {
             outline: none;
             border-color: #4a90e2;
             background: white;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
         }
 
         .color-input.invalid {
             border-color: #ff4757;
             background: #ffe0e0;
         }
+
+        /* 预设模式样式 */
+        .presets-container {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .preset-btn:hover {
+            border-color: #4a90e2;
+            color: #4a90e2;
+            background: #f0f7ff;
+        }
+
+        .preset-btn.active {
+            background: #4a90e2;
+            color: white;
+            border-color: #4a90e2;
+        }
+
+        /* 快捷键提示 */
+        .shortcut-hint {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 1001;
+        }
+
+        .shortcut-hint.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .help-btn {
+            position: relative;
+        }
+
+        .help-tooltip {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 1002;
+        }
+
+        .help-btn:hover .help-tooltip {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .shortcut-list {
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        .shortcut-key {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SF Mono', Monaco, monospace;
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body>
     <div class="control-panel" id="controlPanel">
-        <div class="drag-handle">点击此处拖动面板</div>
-        <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+        <div class="drag-handle" title="拖动面板"></div>
+        
+        <div class="panel-header">
+            <div class="panel-title">Show-widgets</div>
+            <div class="panel-actions">
+                <button class="icon-btn help-btn" id="helpBtn" title="快捷键帮助">
+                    ❓
+                    <div class="help-tooltip">
+                        <div>快捷键：</div>
+                        <div class="shortcut-list">
+                            <div><span class="shortcut-key">H</span>隐藏/显示面板</div>
+                            <div><span class="shortcut-key">F</span>全屏切换</div>
+                            <div><span class="shortcut-key">R</span>重置所有设置</div>
+                            <div><span class="shortcut-key">1-4</span>快速切换预设</div>
+                            <div><span class="shortcut-key">↑/↓</span>调节亮度</div>
+                        </div>
+                    </div>
+                </button>
+                <button class="icon-btn" id="resetBtn" title="重置">🔄</button>
+                <button class="icon-btn" id="fullscreenBtn" title="全屏">⛶</button>
+            </div>
+        </div>
+
         <div class="controls-wrapper">
+            <!-- 预设模式 -->
+            <div class="presets-container">
+                <div class="control-group-title">
+                    <span>快速预设</span>
+                </div>
+                <div class="presets-grid">
+                    <button class="preset-btn" data-preset="normal">标准模式</button>
+                    <button class="preset-btn" data-preset="reading">阅读模式</button>
+                    <button class="preset-btn" data-preset="eyecare">护眼模式</button>
+                    <button class="preset-btn" data-preset="night">夜间模式</button>
+                </div>
+            </div>
+
+            <!-- 亮度控制 -->
             <div class="control-group">
-                <div class="control-group-title">亮度控制</div>
+                <div class="control-group-title">
+                    <span>亮度控制</span>
+                </div>
                 <div class="slider-container">
                     <label for="brightness">亮度</label>
                     <input type="range" id="brightness" min="0" max="100" value="100">
@@ -264,20 +466,23 @@
                 </div>
             </div>
 
+            <!-- 颜色控制 -->
             <div class="control-group">
-                <div class="control-group-title">颜色控制</div>
+                <div class="control-group-title">
+                    <span>颜色控制</span>
+                </div>
                 <div class="slider-container">
-                    <label for="red">红</label>
+                    <label for="red">红色</label>
                     <input type="range" id="red" min="0" max="255" value="255">
                     <span class="value" id="redValue">255</span>
                 </div>
                 <div class="slider-container">
-                    <label for="green">绿</label>
+                    <label for="green">绿色</label>
                     <input type="range" id="green" min="0" max="255" value="255">
                     <span class="value" id="greenValue">255</span>
                 </div>
                 <div class="slider-container">
-                    <label for="blue">蓝</label>
+                    <label for="blue">蓝色</label>
                     <input type="range" id="blue" min="0" max="255" value="255">
                     <span class="value" id="blueValue">255</span>
                 </div>
@@ -289,8 +494,10 @@
                 </div>
             </div>
         </div>
-        <div class="auto-hide-hint">鼠标在空白处静止2秒后自动隐藏</div>
+        <div class="auto-hide-hint">鼠标静止2秒后自动隐藏 · 点击空白处或按H键切换显示</div>
     </div>
+
+    <div class="shortcut-hint" id="shortcutHint"></div>
 
     <script>
         let baseRed = 255;
@@ -301,13 +508,25 @@
         let mouseTimer = null;
         let panelVisible = true;
         let isFullscreen = false;
+        let currentPreset = 'normal';
 
         const controlPanel = document.getElementById('controlPanel');
         const dragHandle = document.querySelector('.drag-handle');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const shortcutHint = document.getElementById('shortcutHint');
+
+        // 预设配置
+        const presets = {
+            normal: { brightness: 100, red: 255, green: 255, blue: 255, name: '标准模式' },
+            reading: { brightness: 85, red: 255, green: 245, blue: 220, name: '阅读模式' },
+            eyecare: { brightness: 75, red: 255, green: 237, blue: 200, name: '护眼模式' },
+            night: { brightness: 40, red: 255, green: 180, blue: 120, name: '夜间模式' }
+        };
 
         // 拖动功能
         let isDragging = false;
+        let hasDragged = false;  // 标记是否进行了拖动
         let currentX;
         let currentY;
         let initialX;
@@ -319,6 +538,7 @@
             if (e.type === "mousedown") {
                 initialX = e.clientX - xOffset;
                 initialY = e.clientY - yOffset;
+                hasDragged = false;  // 重置拖动标志
             }
             
             if (e.target === dragHandle) {
@@ -330,6 +550,13 @@
             initialX = currentX;
             initialY = currentY;
             isDragging = false;
+            
+            // 如果进行了拖动，短暂延迟后重置标志
+            if (hasDragged) {
+                setTimeout(() => {
+                    hasDragged = false;
+                }, 100);
+            }
         }
 
         function drag(e) {
@@ -348,12 +575,68 @@
                 yOffset = currentY;
 
                 controlPanel.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
+                hasDragged = true;  // 标记已进行拖动
             }
         }
 
         dragHandle.addEventListener('mousedown', dragStart);
         document.addEventListener('mousemove', drag);
         document.addEventListener('mouseup', dragEnd);
+
+        // 预设模式切换
+        function applyPreset(presetName) {
+            const preset = presets[presetName];
+            if (!preset) return;
+
+            currentPreset = presetName;
+            
+            // 更新滑块值
+            document.getElementById('brightness').value = preset.brightness;
+            document.getElementById('red').value = preset.red;
+            document.getElementById('green').value = preset.green;
+            document.getElementById('blue').value = preset.blue;
+            
+            // 更新显示值
+            document.getElementById('brightnessValue').textContent = preset.brightness + '%';
+            document.getElementById('redValue').textContent = preset.red;
+            document.getElementById('greenValue').textContent = preset.green;
+            document.getElementById('blueValue').textContent = preset.blue;
+            
+            // 更新颜色
+            currentBrightness = preset.brightness;
+            baseRed = preset.red;
+            baseGreen = preset.green;
+            baseBlue = preset.blue;
+            updateColor();
+            
+            // 更新按钮状态
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.preset === presetName);
+            });
+            
+            // 显示提示
+            showShortcutHint(`已切换到${preset.name}`);
+        }
+
+        // 显示快捷键提示
+        function showShortcutHint(message) {
+            shortcutHint.textContent = message;
+            shortcutHint.classList.add('show');
+            setTimeout(() => {
+                shortcutHint.classList.remove('show');
+            }, 2000);
+        }
+
+        // 重置功能
+        function resetAll() {
+            applyPreset('normal');
+            showShortcutHint('已重置所有设置');
+            
+            // 重置面板位置
+            xOffset = 0;
+            yOffset = 0;
+            controlPanel.style.transform = 'translate(-50%, -50%)';
+        }
 
         // 全屏功能
         function toggleFullscreen() {
@@ -367,7 +650,6 @@
                 } else if (document.documentElement.msRequestFullscreen) {
                     document.documentElement.msRequestFullscreen();
                 }
-                fullscreenBtn.textContent = '';
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
@@ -378,17 +660,89 @@
                 } else if (document.msExitFullscreen) {
                     document.msExitFullscreen();
                 }
-                fullscreenBtn.textContent = '';
             }
         }
 
         // 监听全屏变化
         document.addEventListener('fullscreenchange', () => {
             isFullscreen = !!document.fullscreenElement;
-            fullscreenBtn.textContent = isFullscreen ? '' : '';
+            fullscreenBtn.innerHTML = isFullscreen ? '⛶' : '⛶';
+            showShortcutHint(isFullscreen ? '已进入全屏' : '已退出全屏');
         });
 
+        // 快捷键支持
+        document.addEventListener('keydown', (e) => {
+            // 忽略输入框中的按键
+            if (e.target.tagName === 'INPUT') return;
+            
+            const key = e.key.toLowerCase();
+            
+            switch(key) {
+                case 'h':
+                    // 切换面板显示/隐藏
+                    if (panelVisible) {
+                        hidePanel();
+                        document.body.classList.add('cursor-hidden');
+                    } else {
+                        showPanel();
+                        document.body.classList.remove('cursor-hidden');
+                    }
+                    break;
+                    
+                case 'f':
+                    // 全屏切换
+                    toggleFullscreen();
+                    break;
+                    
+                case 'r':
+                    // 重置
+                    resetAll();
+                    break;
+                    
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                    // 预设模式切换
+                    const presetNames = ['normal', 'reading', 'eyecare', 'night'];
+                    const presetIndex = parseInt(key) - 1;
+                    if (presetIndex >= 0 && presetIndex < presetNames.length) {
+                        applyPreset(presetNames[presetIndex]);
+                    }
+                    break;
+                    
+                case 'arrowup':
+                    // 增加亮度
+                    e.preventDefault();
+                    const currentBrightnessUp = parseInt(document.getElementById('brightness').value);
+                    const newBrightnessUp = Math.min(100, currentBrightnessUp + 5);
+                    document.getElementById('brightness').value = newBrightnessUp;
+                    adjustBrightness();
+                    showShortcutHint(`亮度: ${newBrightnessUp}%`);
+                    break;
+                    
+                case 'arrowdown':
+                    // 减少亮度
+                    e.preventDefault();
+                    const currentBrightnessDown = parseInt(document.getElementById('brightness').value);
+                    const newBrightnessDown = Math.max(0, currentBrightnessDown - 5);
+                    document.getElementById('brightness').value = newBrightnessDown;
+                    adjustBrightness();
+                    showShortcutHint(`亮度: ${newBrightnessDown}%`);
+                    break;
+            }
+        });
+
+        // 事件监听器
         fullscreenBtn.addEventListener('click', toggleFullscreen);
+        resetBtn.addEventListener('click', resetAll);
+
+        // 预设按钮事件
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                applyPreset(btn.dataset.preset);
+            });
+        });
 
         function adjustBrightness() {
             currentBrightness = document.getElementById('brightness').value;
@@ -441,14 +795,12 @@
         }
 
         function showPanel() {
-            if (!panelVisible) {
-                controlPanel.classList.remove('hidden');
-                panelVisible = true;
-            }
+            controlPanel.classList.remove('hidden');
+            panelVisible = true;
         }
 
         function hidePanel() {
-            if (panelVisible && !controlPanel.matches(':hover')) {
+            if (!controlPanel.matches(':hover')) {
                 controlPanel.classList.add('hidden');
                 panelVisible = false;
             }
@@ -470,6 +822,33 @@
                 // 离开面板且不移动时隐藏鼠标
                 document.body.classList.add('cursor-hidden');
             }
+        });
+
+        // 点击空白处切换面板显示/隐藏
+        document.addEventListener('click', (e) => {
+            // 如果刚刚完成拖动，忽略此次点击
+            if (hasDragged) return;
+            
+            // 检查点击的目标是否在控制面板内
+            if (!controlPanel.contains(e.target)) {
+                // 点击的是空白处
+                if (panelVisible) {
+                    hidePanel();
+                    document.body.classList.add('cursor-hidden');
+                    showShortcutHint('面板已隐藏');
+                } else {
+                    showPanel();
+                    document.body.classList.remove('cursor-hidden');
+                    // 重置鼠标移动计时器
+                    handleMouseMove();
+                    showShortcutHint('面板已显示');
+                }
+            }
+        });
+
+        // 防止控制面板内的点击事件冒泡
+        controlPanel.addEventListener('click', (e) => {
+            e.stopPropagation();
         });
 
         // Add event listeners for controls
@@ -543,8 +922,11 @@
 
         // Initialize controls on page load
         window.addEventListener('load', () => {
-            adjustBrightness();
-            updateBaseColors();
+            // 应用默认预设
+            applyPreset('normal');
+            
+            // 设置初始全屏按钮状态
+            fullscreenBtn.innerHTML = '⛶';
         });
     </script>
 </body>
