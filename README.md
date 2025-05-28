@@ -101,12 +101,12 @@
 
 1. 克隆仓库
    ```bash
-   git clone https://github.com/yourusername/Show-widgets.git
+   git clone https://github.com/liangcechinese//Show-widgets.git
    ```
 2. 打开 `index.html`
 3. 开始调节屏幕
 
-或者直接[在线使用](https://yourusername.github.io/Show-widgets/)
+或者直接[在线使用](https://liangcechinese.github.io/Show-widgets/)
 
 ## 🌟 更新日志
 
